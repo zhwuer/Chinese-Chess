@@ -13,7 +13,7 @@ GRID_WIDTH_VERTI = 40
 target_size = (56, 56)
 isRed = True
 ip = ad.ip
-model = load_model('./h5_file/cnn_mini.h5')
+model = load_model('./h5_file/model.h5')
 pieceTypeList = ['b_jiang','b_ju', 'b_ma', 'b_pao', 'b_shi', 'b_xiang', 'b_zu',
 		'r_bing', 'r_ju', 'r_ma', 'r_pao', 'r_shi', 'r_shuai', 'r_xiang']
 
