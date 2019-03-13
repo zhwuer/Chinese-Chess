@@ -27,5 +27,5 @@ def pic():
 	cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-	pic()
-	#adjust()
+	#pic()
+	adjust()
