@@ -16,6 +16,8 @@ ip = ad.ip
 model = load_model('./h5_file/model.h5')
 pieceTypeList = ['b_jiang','b_ju', 'b_ma', 'b_pao', 'b_shi', 'b_xiang', 'b_zu',
 		'r_bing', 'r_ju', 'r_ma', 'r_pao', 'r_shi', 'r_shuai', 'r_xiang']
+dic = {'b_jiang':'Black King', 'b_ju':'Black Rook', 'b_ma':'Black Knight', 'b_pao':'Black Cannon', 'b_shi':'Black Guard', 'b_xiang':'Black Elephant', 'b_zu':'Black Pawn',
+		'r_bing':'Red Soldier', 'r_ju':'Red Chariot', 'r_ma':'Red Horse', 'r_pao':'Red Cannon', 'r_shi':'Red Adviser', 'r_shuai':'Red General', 'r_xiang':'Red Minister'}
 
 
 def PiecePrediction(model, img, target_size, top_n=3):
@@ -37,6 +39,19 @@ def savePath(beginPoint, endPoint, piece):
 	cv2.imwrite('./pieces/%d.png' % np.random.randint(10000), piece)
 	predict_category = PiecePrediction(model, piece, target_size)
 	variety = predict_category.split('_')[-1]
+	color = predict_category.split('_')[0]
+
+	# Print the path
+	if beginPoint[1] - endPoint[1] > 0:
+		end = (end[0], end[1] - updown)
+	else:
+		end = (end[0], end[1] + updown)
+
+	if beginPoint[0] - endPoint[0] > 0:
+		end = (end[0] - leftright, end[1])
+	else:
+		end = (end[0] + leftright, end[1])
+	print('{} moved from point {} to point {}'.format(dic[predict_category], begin, end))
 
 	# Using chinese chess rules to reduce error movement
 	if variety in ['ma']:
@@ -48,32 +63,36 @@ def savePath(beginPoint, endPoint, piece):
 	elif variety in ['shi']:
 		if not (updown == 1 and leftright == 1) and not (updown == 1 and leftright == 1):
 			legal_move = False
-	elif variety in ['jiang', 'bing', 'zu', 'shuai']:
+	elif variety in ['jiang', 'shuai']:
 		if not (updown == 1 and leftright == 0) and not (updown == 0 and leftright == 1):
 			legal_move = False
 	elif variety in ['ju', 'pao']:
 		if updown != 0 and leftright != 0:
 			legal_move = False
+	elif variety in ['bing']:
+		if begin[1] < end[1] or (begin[1] >= 5.0 and begin[0] != end[0]):
+			legal_move = False
+	elif variety in ['zu']:
+		if begin[1] > end[1] or (begin[1] <= 4.0 and begin[0] != end[0]):
+			legal_move = False
 
-	# Print the path
-	if beginPoint[1]-endPoint[1]>0:
-		end = (end[0], end[1] - updown)
+	if isRed:
+		if color == 'b':
+			legal_move = False
+			print('It''s red team''s turn to move')
 	else:
-		end = (end[0], end[1] + updown)
-	
-	if beginPoint[0]-endPoint[0]>0:
-		end = (end[0] - leftright, end[1])
-	else:
-		end = (end[0] + leftright, end[1])
-	print('{} moved from point {} to point {}'.format(predict_category, begin, end))
+		if color == 'r':
+			legal_move = False
+			print('It''s black team''s turn to move')
+
 	text = str(int(begin[0])) + str(int(begin[1])) + str(int(end[0])) + str(int(end[1]))
 	if legal_move:
 		sql2 = "INSERT INTO chess(STEP) VALUES (\'%s\')" % text
 		cursor.execute(sql2)
 		db.commit()
 	else:
-		print('%s performed a illegal movement!' % predict_category)
-	
+		print('%s performed a illegal movement!' % dic[predict_category])
+
 def findPoint(point, pointset):
 	flag = False
 	point_finetune = []
@@ -89,7 +108,7 @@ def findPoint(point, pointset):
 	return flag, point_finetune
 
 def CalculateTrace(pre_img, cur_img):
-	x, y, w, h = changeDetection(cur_img, pre_img)
+	x, y, w, h = moveRecognition(cur_img, pre_img)
 	# Input loca = [xmin,ymin,xmax,ymax], return all circle center inside all the rectangular to pointSet
 	[xmin, ymin, xmax, ymax] = [x, y, x + w, y + h]
 	pre_img_gray = cv2.cvtColor(pre_img, cv2.COLOR_BGR2GRAY)
@@ -121,22 +140,33 @@ def CalculateTrace(pre_img, cur_img):
 				beginPoint = p1
 			elif flag1 == False and flag2 == True:
 				endPoint = p2
-
-	piece = pre_img[ int(beginPoint[1]-beginPoint[2]):int(beginPoint[1]+beginPoint[2]), int(beginPoint[0]-beginPoint[2]):int(beginPoint[0]+beginPoint[2]) ]
 	try:
-		savePath(beginPoint, endPoint, piece)
+		if beginPoint != [] and endPoint != []:
+			piece = pre_img[int(beginPoint[1] - beginPoint[2]):int(beginPoint[1] + beginPoint[2]),
+					int(beginPoint[0] - beginPoint[2]):int(beginPoint[0] + beginPoint[2])]
+			savePath(beginPoint, endPoint, piece)
 	except Exception as e:
 		print('There is a bug when running function savePath().')
 		print(repr(e))
 		traceback.print_exc()
 
-def changeDetection(current_step, previous_step):
+def moveRecognition(current_step, previous_step):
 	current_frame_gray = cv2.cvtColor(current_step, cv2.COLOR_BGR2GRAY)
 	previous_frame_gray = cv2.cvtColor(previous_step, cv2.COLOR_BGR2GRAY)
 	frame_diff = cv2.absdiff(current_frame_gray, previous_frame_gray)
 	ret, frame_diff = cv2.threshold(frame_diff, 0, 255, cv2.THRESH_OTSU)
 	for i in range(6):
 		frame_diff = cv2.medianBlur(frame_diff, 11)
+	x, y, w, h = cv2.boundingRect(frame_diff)
+	return x, y, w, h
+
+def changeDetection(current_step, previous_step):
+	current_frame_gray = cv2.cvtColor(current_step, cv2.COLOR_BGR2GRAY)
+	previous_frame_gray = cv2.cvtColor(previous_step, cv2.COLOR_BGR2GRAY)
+	frame_diff = cv2.absdiff(current_frame_gray, previous_frame_gray)
+	frame_diff = cv2.medianBlur(frame_diff, 5)
+	ret, frame_diff = cv2.threshold(frame_diff, 0, 255, cv2.THRESH_OTSU)
+	frame_diff = cv2.medianBlur(frame_diff, 5)
 	x, y, w, h = cv2.boundingRect(frame_diff)
 	return x, y, w, h
 
@@ -162,7 +192,7 @@ def PiecesChangeDetection():
 			print('Please rollback to step %d' % step)
 			while (True):
 				r, current_step = cap.read()
-				x, y, w, h = changeDetection(current_step, previous_step)
+				x, y, w, h = moveRecognition(current_step, previous_step)
 				#print(x,y,w,h)
 				if w * h < 2700 or (x == 0 and y == 0 and w == 640 and h == 480):
 					legal_move = True
@@ -193,7 +223,6 @@ if __name__ == '__main__':
 			cap.read()
 		ret, current_frame = cap.read()
 		cv2.imwrite('./Test_Image/Step %d.png' % step, current_frame)
-
 	else:
 		exit('Camera is not open.')
 
@@ -209,11 +238,10 @@ if __name__ == '__main__':
 					print('There is a bug when running function PiecesChangeDetection().')
 				if legal_move:
 					if num == 1:
-						print('Piece move successfully\n')
 						step += 1
 						isRed = bool(1 - isRed)
 					elif num == 2:
-						print('Rollback executed!\n')
+						print('Rollback successfully!')
 					elif num == 0:
 						pass
 

@@ -6,16 +6,16 @@ from keras.layers import Convolution2D, MaxPooling2D, Activation, Dropout, Flatt
 import os, multiprocessing, multiprocessing.pool
 NUM_CLASSES = 14
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-root_path = '/Users/jartus/chinese_chess_recognition/classification_model'
+root_path = '/Users/jartus/Chinese-Chess/classification_model'
 os.chdir(root_path)
 
 # The things you need to change is in here
 train_dir = '../Dataset/train'
 valid_dir = '../Dataset/finetune'
-loaded_model_path = '../h5_file/cnn_mini_v0.h5'
+loaded_model_path = '../h5_file/model.h5'
 #saved_model_path = '../Temporary_Model/cnn_mini_v{epoch:d}.h5'
 saved_model_path = '../Temporary_Model/cnn_mini.h5'
-epochs = 10
+epochs = 4
 steps_per_epoch = 1400
 validation_steps = 400
 
@@ -68,6 +68,7 @@ model.summary()
 train_datagen = ImageDataGenerator(
 		rescale=1./255,
 		rotation_range= 360,
+		channel_shift_range=10,
 		#width_shift_range= 0.1,
 		#height_shift_range= 0.1,
 		#shear_range= 0.2,

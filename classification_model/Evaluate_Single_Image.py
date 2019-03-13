@@ -9,7 +9,7 @@ pieceTypeList = ['b_jiang','b_ju', 'b_ma', 'b_pao', 'b_shi', 'b_xiang', 'b_zu',
 # The things you need to change is in here
 weights = '../Temporary_Model/cnn_mini.h5'
 weights = '../h5_file/cnn_mini_v3.h5'
-file_path = '/Users/jartus/chinese_chess_recognition/pieces/'
+file_path = '/Users/jartus/Chinese-Chess/pieces/'
 #file_path = '/Users/jartus/chinese_chess_recognition/Dataset/augmented/train_18_900/r_ju/'
 
 def evaluate_one(weights, file_path):

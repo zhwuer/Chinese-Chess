@@ -22,7 +22,7 @@ def pic():
 		for j in range(20):
 			cap.read()
 		ret, cv2_im = cap.read()
-		cv2.imwrite('Step 1.png', cv2_im)
+		cv2.imwrite('Step 10.png', cv2_im)
 	cap.release()
 	cv2.destroyAllWindows()
 
