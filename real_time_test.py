@@ -86,12 +86,7 @@ def savePath(beginPoint, endPoint, piece):
 			print('It''s black team''s turn to move')
 
 	text = str(int(begin[0])) + str(int(begin[1])) + str(int(end[0])) + str(int(end[1]))
-	if legal_move:
-		sql2 = "INSERT INTO chess(STEP) VALUES (\'%s\')" % text
-		cursor.execute(sql2)
-		db.commit()
-	else:
-		print('%s performed a illegal movement!' % dic[predict_category])
+	return text, predict_category
 
 def findPoint(point, pointset):
 	flag = False
@@ -108,7 +103,7 @@ def findPoint(point, pointset):
 	return flag, point_finetune
 
 def CalculateTrace(pre_img, cur_img):
-	x, y, w, h = moveRecognition(cur_img, pre_img)
+	x, y, w, h = changeDetection(cur_img, pre_img)
 	# Input loca = [xmin,ymin,xmax,ymax], return all circle center inside all the rectangular to pointSet
 	[xmin, ymin, xmax, ymax] = [x, y, x + w, y + h]
 	pre_img_gray = cv2.cvtColor(pre_img, cv2.COLOR_BGR2GRAY)
@@ -121,7 +116,18 @@ def CalculateTrace(pre_img, cur_img):
 	for j in range(int(np.around((ymax-ymin)/GRID_WIDTH_VERTI))):
 		for i in range(int(np.around((xmax-xmin)/GRID_WIDTH_HORI))):
 			pointSet.append([ymin + (j+0.5)*GRID_WIDTH_VERTI, xmin + (i+0.5)*GRID_WIDTH_HORI])
-	
+
+	# for i in pointSet:
+	# 	cv2.circle(pre_img,(int(i[1]),int(i[0])),2,(255,0,0),5)#画圆心
+	# flag1, p1 = findPoint(pointSet[0], pre_img_circle)
+	# print(flag1)
+	# flag2, p2 = findPoint(pointSet[1], cur_img_circle)
+	# print(flag2)
+	# #cv2.circle(pre_img, (int(p1[0]), int(p1[1])), 2, (255, 255, 0), 5)
+	# cv2.circle(pre_img, (int(p2[0]), int(p2[1])), 2, (255, 255, 0), 5)
+	# print(len(pre_img_circle), len(cur_img_circle))
+	# cv2.imshow('', pre_img)
+	# cv2.waitKey(0)
 	for p in pointSet:
 		if beginPoint != [] and endPoint != []:		# Already find beginPoint and endPoint, exit 
 			break
@@ -140,25 +146,12 @@ def CalculateTrace(pre_img, cur_img):
 				beginPoint = p1
 			elif flag1 == False and flag2 == True:
 				endPoint = p2
-	try:
-		if beginPoint != [] and endPoint != []:
-			piece = pre_img[int(beginPoint[1] - beginPoint[2]):int(beginPoint[1] + beginPoint[2]),
-					int(beginPoint[0] - beginPoint[2]):int(beginPoint[0] + beginPoint[2])]
-			savePath(beginPoint, endPoint, piece)
-	except Exception as e:
-		print('There is a bug when running function savePath().')
-		print(repr(e))
-		traceback.print_exc()
-
-def moveRecognition(current_step, previous_step):
-	current_frame_gray = cv2.cvtColor(current_step, cv2.COLOR_BGR2GRAY)
-	previous_frame_gray = cv2.cvtColor(previous_step, cv2.COLOR_BGR2GRAY)
-	frame_diff = cv2.absdiff(current_frame_gray, previous_frame_gray)
-	ret, frame_diff = cv2.threshold(frame_diff, 0, 255, cv2.THRESH_OTSU)
-	for i in range(6):
-		frame_diff = cv2.medianBlur(frame_diff, 11)
-	x, y, w, h = cv2.boundingRect(frame_diff)
-	return x, y, w, h
+	if beginPoint != [] and endPoint != []:
+		piece = pre_img[int(beginPoint[1] - beginPoint[2]):int(beginPoint[1] + beginPoint[2]),
+				int(beginPoint[0] - beginPoint[2]):int(beginPoint[0] + beginPoint[2])]
+	else:
+		return [], [], []
+	return beginPoint, endPoint, piece
 
 def changeDetection(current_step, previous_step):
 	current_frame_gray = cv2.cvtColor(current_step, cv2.COLOR_BGR2GRAY)
@@ -174,17 +167,21 @@ def PiecesChangeDetection():
 	global legal_move
 	previous_step = cv2.imread('./Test_Image/Step %d.png' % step)
 	r, current_step = cap.read()
-	x, y, w, h = changeDetection(current_step, previous_step)
-	if w * h < 2700 or (x == 0 and y == 0 and w == 640 and h == 480):
+	x, y, w, h = changeDetection(previous_step, current_step)
+	if w * h < 2700 or x == 0 or y == 0 or w == 640 or h == 480 or x+w == 640 or y+h == 480:
 		return 0
-	elif x != 0 and y != 0 and x+w != 640 and y+h != 480:
-		try:
-			CalculateTrace(previous_step, current_step)
-		except Exception as e:
-			print('There is a bug when running function CalculateTrace().')
-			traceback.print_exc()
+	else:
+		beginPoint, endPoint, piece = CalculateTrace(previous_step, current_step)
+		if beginPoint != [] and endPoint != [] and piece != []:
+			text, predict_category = savePath(beginPoint, endPoint, piece)
+			if legal_move:
+				sql2 = "INSERT INTO chess(STEP) VALUES (\'%s\')" % text
+				cursor.execute(sql2)
+				db.commit()
+			else:
+				print('%s performed a illegal movement!' % dic[predict_category])
+		else:
 			return 0
-
 		if legal_move:
 			cv2.imwrite('./Test_Image/Step %d.png' % (step + 1), current_step)
 			return 1
@@ -192,18 +189,17 @@ def PiecesChangeDetection():
 			print('Please rollback to step %d' % step)
 			while (True):
 				r, current_step = cap.read()
-				x, y, w, h = moveRecognition(current_step, previous_step)
+				x, y, w, h = changeDetection(previous_step, current_step)
 				#print(x,y,w,h)
 				if w * h < 2700 or (x == 0 and y == 0 and w == 640 and h == 480):
 					legal_move = True
 					cv2.imwrite('./Test_Image/Step %d.png' % step, current_step)
 					break
 			return 2
-	else:
-		return 0
 
 if __name__ == '__main__':
 	cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
+	#cap = cv2.VideoCapture('test2.avi')
 	# Initialize mysql
 	db = pymysql.connect("localhost", "root", "zhenmafan", "chess")
 	cursor = db.cursor()
