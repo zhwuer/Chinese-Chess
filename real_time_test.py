@@ -5,20 +5,42 @@ import numpy as np
 from keras.models import load_model
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-# The parament of HoughCircle function need to be adjusted
-THRESHOLD = 15
-calibrated_point = (ad.begin[0] + 20, ad.begin[1] + 20)
-GRID_WIDTH_HORI = 45
-GRID_WIDTH_VERTI = 40
-target_size = (56, 56)
-isRed = True
 ip = ad.ip
-model = load_model('./h5_file/model.h5')
 pieceTypeList = ['b_jiang','b_ju', 'b_ma', 'b_pao', 'b_shi', 'b_xiang', 'b_zu',
 		'r_bing', 'r_ju', 'r_ma', 'r_pao', 'r_shi', 'r_shuai', 'r_xiang']
 dic = {'b_jiang':'Black King', 'b_ju':'Black Rook', 'b_ma':'Black Knight', 'b_pao':'Black Cannon', 'b_shi':'Black Guard', 'b_xiang':'Black Elephant', 'b_zu':'Black Pawn',
 		'r_bing':'Red Soldier', 'r_ju':'Red Chariot', 'r_ma':'Red Horse', 'r_pao':'Red Cannon', 'r_shi':'Red Adviser', 'r_shuai':'Red General', 'r_xiang':'Red Minister'}
 
+
+def Initialization():
+	global GRID_WIDTH_HORI, GRID_WIDTH_VERTI, begin_point, cap, db, cursor, step, legal_move, model, target_size, isRed
+
+	step = 0		# For recording steps
+	legal_move = True	# To decide if the move is legal or illegal
+	isRed = True		# To decide which team moves now
+	target_size = (56, 56)		# CNN input image size
+	model = load_model('./h5_file/model.h5')	# Machine Learning Model
+	
+	# Initialize mysql
+	db = pymysql.connect("localhost", "root", "zhenmafan", "chess")
+	cursor = db.cursor()
+	cursor.execute("DROP TABLE IF EXISTS chess")
+	sql1 = """CREATE TABLE chess (
+				Id INT AUTO_INCREMENT,
+				STEP CHAR(4) NOT NULL,
+				PRIMARY KEY(Id)
+			)"""
+	cursor.execute(sql1)
+	print('SQL Initialized.')
+	
+	# Initialize grid width
+	frame0 = cv2.imread('./Test_Image/Step 0.png', 0)
+	img_circle = cv2.HoughCircles(frame0,cv2.HOUGH_GRADIENT,1,40,param1=100,param2=20,minRadius=18,maxRadius=22)[0]
+	begin_point = img_circle[np.sum(img_circle, axis=1).tolist().index(min(np.sum(img_circle, axis=1).tolist()))]
+	end_point = img_circle[np.sum(img_circle, axis=1).tolist().index(max(np.sum(img_circle, axis=1).tolist()))]
+	GRID_WIDTH_HORI = (end_point[0] - begin_point[0])/8
+	GRID_WIDTH_VERTI = (end_point[1] - begin_point[1])/9
+	print('Recognition Initialized.\n')
 
 def PiecePrediction(model, img, target_size, top_n=3):
 	x = cv2.resize(img, target_size)
@@ -30,7 +52,7 @@ def PiecePrediction(model, img, target_size, top_n=3):
 
 def savePath(beginPoint, endPoint, piece):
 	global legal_move	# For indicating error movement
-	begin = (np.around(abs(beginPoint[0]-calibrated_point[0])/GRID_WIDTH_HORI), np.around(abs(beginPoint[1]-calibrated_point[1])/GRID_WIDTH_VERTI))
+	begin = (np.around(abs(beginPoint[0]-begin_point[0])/GRID_WIDTH_HORI), np.around(abs(beginPoint[1]-begin_point[1])/GRID_WIDTH_VERTI))
 	#print(beginPoint, endPoint)
 	end = begin
 	updown = np.around(abs(beginPoint[1]-endPoint[1])/GRID_WIDTH_VERTI)
@@ -198,32 +220,19 @@ def PiecesChangeDetection():
 			return 2
 
 if __name__ == '__main__':
-	cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
-	#cap = cv2.VideoCapture('test2.avi')
-	# Initialize mysql
-	db = pymysql.connect("localhost", "root", "zhenmafan", "chess")
-	cursor = db.cursor()
-	cursor.execute("DROP TABLE IF EXISTS chess")
-	sql1 = """CREATE TABLE chess (
-				Id INT AUTO_INCREMENT,
-				STEP CHAR(4) NOT NULL,
-				PRIMARY KEY(Id)
-			)"""
-	cursor.execute(sql1)
-	print('SQL Initialized.')
-	step = 0
-	s = []
-	legal_move = True
+	# Initialize camera
+	# cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
+	cap = cv2.VideoCapture('test.avi')
 	if cap.isOpened():
 		for j in range(20):
 			cap.read()
 		ret, current_frame = cap.read()
-		cv2.imwrite('./Test_Image/Step %d.png' % step, current_frame)
+		cv2.imwrite('./Test_Image/Step 0.png', current_frame)
 	else:
 		exit('Camera is not open.')
-
+	print('Camera Initialized.')
 	previous_frame = current_frame
-	print('Recognition Initialized.\n')
+	Initialization()
 	try:
 		while (cap.isOpened()):
 			x, y, w, h = changeDetection(current_frame, previous_frame)

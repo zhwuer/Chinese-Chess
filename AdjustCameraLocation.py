@@ -2,10 +2,10 @@ import cv2
 
 ip = '10.19.46.153'
 ip = '192.168.1.100'
-cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
 begin = (40, 40)
 
 def adjust():
+	cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
 	while (cap.isOpened()):
 		## Capture frame-by-frame
 		ret, cv2_im = cap.read()
@@ -18,6 +18,7 @@ def adjust():
 	cv2.destroyAllWindows()
 
 def pic():
+	cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
 	if (cap.isOpened()):
 		for j in range(20):
 			cap.read()
