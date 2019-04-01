@@ -1,21 +1,21 @@
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
-#from image import *
+import matplotlib.pyplot as plt
 from keras.models import Sequential, load_model
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, TensorBoard
 from keras.layers import Convolution2D, MaxPooling2D, Activation, Dropout, Flatten, Dense
 import os, multiprocessing, multiprocessing.pool
-NUM_CLASSES = 14
+NUM_CLASSES = 15
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 root_path = '/Users/jartus/Chinese-Chess/classification_model'
 os.chdir(root_path)
 
 # The things you need to change is in here
 train_dir = '../Dataset/train'
-valid_dir = '../Dataset/finetune'
+valid_dir = '../Dataset/valid'
 loaded_model_path = '../h5_file/model.h5'
 #saved_model_path = '../Temporary_Model/cnn_mini_v{epoch:d}.h5'
 saved_model_path = '../Temporary_Model/cnn_mini.h5'
-epochs = 4
+epochs = 10
 steps_per_epoch = 1400
 validation_steps = 400
 
@@ -52,15 +52,15 @@ def create_cnn_model():
 		model.add(Dense(256, activation='relu'))
 		model.add(Dropout(0.5))
 
-		model.add(Dense(NUM_CLASSES, activation='softmax'))
+		model.add(Dense(NUM_CLASSES, activation='softmax', name='output'))
 
-		model.compile(optimizer='adm',
+		model.compile(optimizer='Adam',
 					  loss='categorical_crossentropy',
 					   metrics=['accuracy'])
 		return model
 
-#model = create_cnn_model()
-model = load_model(loaded_model_path)
+model = create_cnn_model()
+#model.load_weights(loaded_model_path, by_name=True)
 model.summary()
 #pool = multiprocessing.Pool(processes=8)
 
@@ -68,7 +68,7 @@ model.summary()
 train_datagen = ImageDataGenerator(
 		rescale=1./255,
 		rotation_range= 360,
-		channel_shift_range=10,
+		#channel_shift_range=10,
 		#width_shift_range= 0.1,
 		#height_shift_range= 0.1,
 		#shear_range= 0.2,
@@ -104,11 +104,18 @@ validation_generator = validation_datagen.flow_from_directory(
 		class_mode='categorical')
 
 checkpointer = ModelCheckpoint(filepath=saved_model_path, verbose=1, save_best_only=True)
+callbacks = TensorBoard(
+    log_dir='./logs',
+	histogram_freq=0,
+	write_graph = True,
+	write_images = True,
+	update_freq = 50
+)
 model.fit_generator(
 		train_generator,
 		steps_per_epoch=steps_per_epoch,
 		epochs=epochs,
 		validation_data=validation_generator,
 		validation_steps=validation_steps,
-		callbacks=[checkpointer]
+		callbacks=[checkpointer, callbacks]
 )

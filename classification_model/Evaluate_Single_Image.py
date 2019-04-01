@@ -7,9 +7,8 @@ pieceTypeList = ['b_jiang','b_ju', 'b_ma', 'b_pao', 'b_shi', 'b_xiang', 'b_zu',
 		'r_bing', 'r_ju', 'r_ma', 'r_pao', 'r_shi', 'r_shuai', 'r_xiang']
 
 # The things you need to change is in here
-weights = '../Temporary_Model/cnn_mini.h5'
-weights = '../h5_file/cnn_mini_v3.h5'
-file_path = '/Users/jartus/Chinese-Chess/pieces/'
+weights = '/Users/jartus/Chinese-Chess/Temporary_Model/cnn_mini_v49.h5'
+file_path = '/Users/jartus/Chinese-Chess/pieces/b_ju_(2,7).png'
 #file_path = '/Users/jartus/chinese_chess_recognition/Dataset/augmented/train_18_900/r_ju/'
 
 def evaluate_one(weights, file_path):
@@ -35,5 +34,5 @@ def evaluate(weights, file_path):    # Input is a directory, Output is the total
 		preds = np.around(preds)
 		print(pieceTypeList[np.where(preds[0] == 1)[0][0]])
 
-evaluate(weights, file_path)
-#evaluate_one(weights, file_path)
+#evaluate(weights, file_path)
+evaluate_one(weights, file_path)
