@@ -13,7 +13,7 @@ dic = {'b_jiang':'Black King', 'b_ju':'Black Rook', 'b_ma':'Black Knight', 'b_pa
 
 
 def Initialization():
-	global GRID_WIDTH_HORI, GRID_WIDTH_VERTI, begin_point, cap, db, cursor, step, legal_move, model, target_size, isRed, pointSet
+	global GRID_WIDTH_HORI, GRID_WIDTH_VERTI, begin_point, cap, db, cursor, step, legal_move, model, target_size, isRed
 
 	step = 0		# For recording steps
 	legal_move = True	# To decide if the move is legal or illegal
@@ -40,11 +40,6 @@ def Initialization():
 	end_point = img_circle[np.sum(img_circle, axis=1).tolist().index(max(np.sum(img_circle, axis=1).tolist()))]
 	GRID_WIDTH_HORI = (end_point[0] - begin_point[0])/8
 	GRID_WIDTH_VERTI = (end_point[1] - begin_point[1])/9
-	pointSet = []
-	for j in range(10):
-		for i in range(9):
-			p = [begin_point[0] + i * GRID_WIDTH_HORI, begin_point[1] + j * GRID_WIDTH_VERTI]
-			pointSet.append(p)
 	print('Recognition Initialized.\n')
 
 def PiecePrediction(model, img, target_size, top_n=3):
@@ -186,12 +181,14 @@ def changeDetection(previous_step, current_step):
 	return x, y, w, h
 
 def compare(img1, img2):
+	subset = []
 	r = 19
 	dict1 = {}
 	dict2 = {}
-	subset = []
 	x, y, w, h = changeDetection(img1, img2)
-	for i in pointSet:
+	img1_gray = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+	img1_circle = cv2.HoughCircles(img1_gray, cv2.HOUGH_GRADIENT, 1, 40, param1=100, param2=20, minRadius=18, maxRadius=18)[0]
+	for i in img1_circle:
 		if x<i[0]<x+w and y<i[1]<y+h:
 			subset.append(i)
 	for point in subset:
