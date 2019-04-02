@@ -1,6 +1,6 @@
 # Chinese Chess Recognition
 import AdjustCameraLocation as ad
-import cv2, os, pymysql, traceback
+import cv2, os, pymysql, operator
 import numpy as np
 from keras.models import load_model
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -13,7 +13,7 @@ dic = {'b_jiang':'Black King', 'b_ju':'Black Rook', 'b_ma':'Black Knight', 'b_pa
 
 
 def Initialization():
-	global GRID_WIDTH_HORI, GRID_WIDTH_VERTI, begin_point, cap, db, cursor, step, legal_move, model, target_size, isRed
+	global GRID_WIDTH_HORI, GRID_WIDTH_VERTI, begin_point, cap, db, cursor, step, legal_move, model, target_size, isRed, pointSet
 
 	step = 0		# For recording steps
 	legal_move = True	# To decide if the move is legal or illegal
@@ -40,6 +40,11 @@ def Initialization():
 	end_point = img_circle[np.sum(img_circle, axis=1).tolist().index(max(np.sum(img_circle, axis=1).tolist()))]
 	GRID_WIDTH_HORI = (end_point[0] - begin_point[0])/8
 	GRID_WIDTH_VERTI = (end_point[1] - begin_point[1])/9
+	pointSet = []
+	for j in range(10):
+		for i in range(9):
+			p = [begin_point[0] + i * GRID_WIDTH_HORI, begin_point[1] + j * GRID_WIDTH_VERTI]
+			pointSet.append(p)
 	print('Recognition Initialized.\n')
 
 def PiecePrediction(model, img, target_size, top_n=3):
@@ -58,7 +63,7 @@ def savePath(beginPoint, endPoint, piece):
 	updown = np.around(abs(beginPoint[1]-endPoint[1])/GRID_WIDTH_VERTI)
 	leftright = np.around(abs(beginPoint[0]-endPoint[0])/GRID_WIDTH_HORI)
 	#print(updown, leftright)
-	cv2.imwrite('./pieces/%d.png' % np.random.randint(10000), piece)
+	#cv2.imwrite('./pieces/%d.png' % np.random.randint(10000), piece)
 	predict_category = PiecePrediction(model, piece, target_size)
 	variety = predict_category.split('_')[-1]
 	color = predict_category.split('_')[0]
@@ -125,31 +130,18 @@ def findPoint(point, pointset):
 	return flag, point_finetune
 
 def CalculateTrace(pre_img, cur_img):
+	# Input loca = [x, y, w, h], return all circle center inside the rectangular to pointSet
+	pointSet = []
+	beginPoint = []
+	endPoint = []
 	x, y, w, h = changeDetection(cur_img, pre_img)
-	# Input loca = [xmin,ymin,xmax,ymax], return all circle center inside all the rectangular to pointSet
-	[xmin, ymin, xmax, ymax] = [x, y, x + w, y + h]
 	pre_img_gray = cv2.cvtColor(pre_img, cv2.COLOR_BGR2GRAY)
 	cur_img_gray = cv2.cvtColor(cur_img, cv2.COLOR_BGR2GRAY)
 	pre_img_circle = cv2.HoughCircles(pre_img_gray,cv2.HOUGH_GRADIENT,1,40,param1=100,param2=20,minRadius=18,maxRadius=18)[0]
 	cur_img_circle = cv2.HoughCircles(cur_img_gray,cv2.HOUGH_GRADIENT,1,40,param1=100,param2=20,minRadius=18,maxRadius=18)[0]
-	pointSet = []
-	beginPoint = []
-	endPoint = []
-	for j in range(int(np.around((ymax-ymin)/GRID_WIDTH_VERTI))):
-		for i in range(int(np.around((xmax-xmin)/GRID_WIDTH_HORI))):
-			pointSet.append([ymin + (j+0.5)*GRID_WIDTH_VERTI, xmin + (i+0.5)*GRID_WIDTH_HORI])
-
-	# for i in pointSet:
-	# 	cv2.circle(pre_img,(int(i[1]),int(i[0])),2,(255,0,0),5)#画圆心
-	# flag1, p1 = findPoint(pointSet[0], pre_img_circle)
-	# print(flag1)
-	# flag2, p2 = findPoint(pointSet[1], cur_img_circle)
-	# print(flag2)
-	# #cv2.circle(pre_img, (int(p1[0]), int(p1[1])), 2, (255, 255, 0), 5)
-	# cv2.circle(pre_img, (int(p2[0]), int(p2[1])), 2, (255, 255, 0), 5)
-	# print(len(pre_img_circle), len(cur_img_circle))
-	# cv2.imshow('', pre_img)
-	# cv2.waitKey(0)
+	for j in range(int(np.around(h/GRID_WIDTH_VERTI))):
+		for i in range(int(np.around(w/GRID_WIDTH_HORI))):
+			pointSet.append([y + (j+0.5)*GRID_WIDTH_VERTI, x + (i+0.5)*GRID_WIDTH_HORI])
 	for p in pointSet:
 		if beginPoint != [] and endPoint != []:		# Already find beginPoint and endPoint, exit 
 			break
@@ -175,7 +167,7 @@ def CalculateTrace(pre_img, cur_img):
 		return [], [], []
 	return beginPoint, endPoint, piece
 
-def changeDetection(current_step, previous_step):
+def changeDetection(previous_step, current_step):
 	current_frame_gray = cv2.cvtColor(current_step, cv2.COLOR_BGR2GRAY)
 	previous_frame_gray = cv2.cvtColor(previous_step, cv2.COLOR_BGR2GRAY)
 	frame_diff = cv2.absdiff(current_frame_gray, previous_frame_gray)
@@ -183,14 +175,40 @@ def changeDetection(current_step, previous_step):
 	ret, frame_diff = cv2.threshold(frame_diff, 0, 255, cv2.THRESH_OTSU)
 	frame_diff = cv2.medianBlur(frame_diff, 5)
 	x, y, w, h = cv2.boundingRect(frame_diff)
+	#### For Test ####
+	for i in pointSet:
+		if x<i[0]<x+w and y<i[1]<y+h:
+			cv2.circle(frame_diff, (int(i[0]), int(i[1])), 2, (255, 0, 0), 5)
+	cv2.rectangle(frame_diff, (x, y), (x + w, y + h), (255,255,255), 2)
+	cv2.imshow('', frame_diff)
+	cv2.waitKey(1)
+	#### For Test ####
 	return x, y, w, h
 
-def PiecesChangeDetection():
+def compare(img1, img2):
+	r = 19
+	dict1 = {}
+	dict2 = {}
+	subset = []
+	x, y, w, h = changeDetection(img1, img2)
+	for i in pointSet:
+		if x<i[0]<x+w and y<i[1]<y+h:
+			subset.append(i)
+	for point in subset:
+		coordinate = ((point[0] - begin_point[0]) / GRID_WIDTH_HORI, (point[1] - begin_point[1]) / GRID_WIDTH_VERTI)
+		piece1 = img1[int(point[1] - r):int(point[1] + r), int(point[0] - r):int(point[0] + r)]
+		piece2 = img2[int(point[1] - r):int(point[1] + r), int(point[0] - r):int(point[0] + r)]
+		cat1 = PiecePrediction(model, piece1, target_size)
+		cat2 = PiecePrediction(model, piece2, target_size)
+		dict1[(coordinate[0], coordinate[1])] = cat1
+		dict2[(coordinate[0], coordinate[1])] = cat2
+	return operator.eq(dict1, dict2)
+
+def PiecesChangeDetection(current_step):
 	global legal_move
 	previous_step = cv2.imread('./Test_Image/Step %d.png' % step)
-	r, current_step = cap.read()
 	x, y, w, h = changeDetection(previous_step, current_step)
-	if w * h < 2700 or x == 0 or y == 0 or w == 640 or h == 480 or x+w == 640 or y+h == 480:
+	if w * h < 2700 or x == 0 or y == 0 or x+w == 480 or y+h == 480:	#棋子没有移动
 		return 0
 	else:
 		beginPoint, endPoint, piece = CalculateTrace(previous_step, current_step)
@@ -210,14 +228,15 @@ def PiecesChangeDetection():
 		else:
 			print('Please rollback to step %d' % step)
 			while (True):
-				r, current_step = cap.read()
-				x, y, w, h = changeDetection(previous_step, current_step)
-				#print(x,y,w,h)
-				if w * h < 2700 or (x == 0 and y == 0 and w == 640 and h == 480):
+				r, frame = cap.read()
+				frame = frame[0:480, 0:480]
+				x, y, w, h = changeDetection(previous_step, frame)
+				if x != 0 and y != 0 and x+w != 480 and y+h != 480 and compare(previous_step, frame):
 					legal_move = True
-					cv2.imwrite('./Test_Image/Step %d.png' % step, current_step)
+					cv2.imwrite('./Test_Image/Step %d.png' % step, frame)
+					print('Rollback successfully!')
 					break
-			return 2
+			return 0
 
 if __name__ == '__main__':
 	# Initialize camera
@@ -227,6 +246,7 @@ if __name__ == '__main__':
 		for j in range(20):
 			cap.read()
 		ret, current_frame = cap.read()
+		current_frame = current_frame[0:480, 0:480]
 		cv2.imwrite('./Test_Image/Step 0.png', current_frame)
 	else:
 		exit('Camera is not open.')
@@ -236,22 +256,21 @@ if __name__ == '__main__':
 	try:
 		while (cap.isOpened()):
 			x, y, w, h = changeDetection(current_frame, previous_frame)
-			if (x == 0 and y == 0 and w == 640 and h == 480):
+			if (x == 0 and y == 0 and w == 480 and h == 480):
 				try:
-					num = PiecesChangeDetection()
+					num = PiecesChangeDetection(current_frame)
 				except:
 					print('There is a bug when running function PiecesChangeDetection().')
 				if legal_move:
 					if num == 1:
 						step += 1
 						isRed = bool(1 - isRed)
-					elif num == 2:
-						print('Rollback successfully!')
 					elif num == 0:
 						pass
 
 			previous_frame = current_frame.copy()
 			ret, current_frame = cap.read()
+			current_frame = current_frame[0:480, 0:480]
 	except:
 		print('Exit')
 		cap.release()
