@@ -171,9 +171,6 @@ def changeDetection(previous_step, current_step):
 	frame_diff = cv2.medianBlur(frame_diff, 5)
 	x, y, w, h = cv2.boundingRect(frame_diff)
 	#### For Test ####
-	for i in pointSet:
-		if x<i[0]<x+w and y<i[1]<y+h:
-			cv2.circle(frame_diff, (int(i[0]), int(i[1])), 2, (255, 0, 0), 5)
 	cv2.rectangle(frame_diff, (x, y), (x + w, y + h), (255,255,255), 2)
 	cv2.imshow('', frame_diff)
 	cv2.waitKey(1)
