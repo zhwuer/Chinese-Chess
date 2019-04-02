@@ -1,6 +1,6 @@
 # Chinese Chess Recognition
 import AdjustCameraLocation as ad
-import cv2, os, pymysql, operator
+import cv2, os, pymysql, operator, copy
 import numpy as np
 from keras.models import load_model
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
