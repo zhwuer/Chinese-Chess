@@ -177,12 +177,11 @@ def changeDetection(previous_step, current_step):
 	#### For Test ####
 	return x, y, w, h
 
-def compare(img1, img2):
+def compare(img1, img2, x, y, w, h):
 	subset = []
 	r = 19
 	dict1 = {}
 	dict2 = {}
-	x, y, w, h = changeDetection(img1, img2)
 	img1_gray = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
 	img1_circle = cv2.HoughCircles(img1_gray, cv2.HOUGH_GRADIENT, 1, 40, param1=100, param2=20, minRadius=18, maxRadius=18)[0]
 	for i in img1_circle:
@@ -223,14 +222,18 @@ def PiecesChangeDetection(current_step):
 			print('Please rollback to step %d' % step)
 			while (True):
 				r, frame = cap.read()
-				frame = frame[0:480, 0:480]
+				frame = preprocess(frame)
 				x, y, w, h = changeDetection(previous_step, frame)
-				if x != 0 and y != 0 and x+w != 480 and y+h != 480 and compare(previous_step, frame):
+				if x != 0 and y != 0 and x+w != 480 and y+h != 480 and compare(previous_step, frame, x, y, w, h):
 					legal_move = True
 					cv2.imwrite('./Test_Image/Step %d.png' % step, frame)
 					print('Rollback successfully!')
 					break
 			return 0
+
+def preprocess(img):
+	output = img[0:480, 0:480]
+	return output
 
 if __name__ == '__main__':
 	# Initialize camera
@@ -240,7 +243,7 @@ if __name__ == '__main__':
 		for j in range(20):
 			cap.read()
 		ret, current_frame = cap.read()
-		current_frame = current_frame[0:480, 0:480]
+		current_frame = preprocess(current_frame)
 		cv2.imwrite('./Test_Image/Step 0.png', current_frame)
 	else:
 		exit('Camera is not open.')
@@ -264,7 +267,7 @@ if __name__ == '__main__':
 
 			previous_frame = current_frame.copy()
 			ret, current_frame = cap.read()
-			current_frame = current_frame[0:480, 0:480]
+			current_frame = preprocess(current_frame)
 	except:
 		print('Exit')
 		cap.release()
