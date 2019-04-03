@@ -8,6 +8,9 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 ip = ad.ip
 pieceTypeList = ['b_jiang','b_ju', 'b_ma', 'b_pao', 'b_shi', 'b_xiang', 'b_zu',
 		'r_bing', 'r_ju', 'r_ma', 'r_pao', 'r_shi', 'r_shuai', 'r_xiang']
+pieceTypeList_with_grid = ['b_jiang','b_ju', 'b_ma', 'b_pao', 'b_shi', 'b_xiang', 'b_zu', 'grid',
+                'r_bing', 'r_ju', 'r_ma', 'r_pao', 'r_shi', 'r_shuai', 'r_xiang']
+label_type = pieceTypeList_with_grid
 dic = {'b_jiang':'Black King', 'b_ju':'Black Rook', 'b_ma':'Black Knight', 'b_pao':'Black Cannon', 'b_shi':'Black Guard', 'b_xiang':'Black Elephant', 'b_zu':'Black Pawn',
 		'r_bing':'Red Soldier', 'r_ju':'Red Chariot', 'r_ma':'Red Horse', 'r_pao':'Red Cannon', 'r_shi':'Red Adviser', 'r_shuai':'Red General', 'r_xiang':'Red Minister'}
 
@@ -19,7 +22,7 @@ def Initialization():
 	legal_move = True	# To decide if the move is legal or illegal
 	isRed = True		# To decide which team moves now
 	target_size = (56, 56)		# CNN input image size
-	model = load_model('./h5_file/model.h5')	# Machine Learning Model
+	model = load_model('./h5_file/new_model.h5')	# Machine Learning Model
 	
 	# Initialize mysql
 	db = pymysql.connect("localhost", "root", "zhenmafan", "chess")
@@ -48,7 +51,7 @@ def PiecePrediction(model, img, target_size, top_n=3):
 	x = x / 255
 	x = np.expand_dims(x, axis=0)
 	preds = model.predict_classes(x)
-	return pieceTypeList[int(preds)]
+	return label_type[int(preds)]
 
 def savePath(beginPoint, endPoint, piece):
 	global legal_move	# For indicating error movement
@@ -58,7 +61,6 @@ def savePath(beginPoint, endPoint, piece):
 	updown = np.around(abs(beginPoint[1]-endPoint[1])/GRID_WIDTH_VERTI)
 	leftright = np.around(abs(beginPoint[0]-endPoint[0])/GRID_WIDTH_HORI)
 	#print(updown, leftright)
-	#cv2.imwrite('./pieces/%d.png' % np.random.randint(10000), piece)
 	predict_category = PiecePrediction(model, piece, target_size)
 	variety = predict_category.split('_')[-1]
 	color = predict_category.split('_')[0]
@@ -107,6 +109,8 @@ def savePath(beginPoint, endPoint, piece):
 			legal_move = False
 			print('It''s black team''s turn to move')
 
+	if not legal_move:
+		cv2.imwrite('./pieces/%d.png' % np.random.randint(10000), piece)
 	text = str(int(begin[0])) + str(int(begin[1])) + str(int(end[0])) + str(int(end[1]))
 	return text, predict_category
 
@@ -168,10 +172,10 @@ def changeDetection(previous_step, current_step):
 	frame_diff = cv2.absdiff(current_frame_gray, previous_frame_gray)
 	frame_diff = cv2.medianBlur(frame_diff, 5)
 	ret, frame_diff_otsu = cv2.threshold(frame_diff, 0, 255, cv2.THRESH_OTSU)
-	frame_diff_otsu = cv2.medianBlur(frame_diff_otsu, 5)
+	frame_diff_otsu = cv2.medianBlur(frame_diff_otsu, 11)
 	x, y, w, h = cv2.boundingRect(frame_diff_otsu)
 	#### For Test ####
-	if ret > 20:
+	if ret > 5:
 		cv2.rectangle(frame_diff_otsu, (x, y), (x + w, y + h), (255,255,255), 2)
 		cv2.imshow('', frame_diff_otsu)
 		cv2.waitKey(1)
@@ -209,7 +213,7 @@ def PiecesChangeDetection(current_step):
 	global legal_move
 	previous_step = cv2.imread('./Test_Image/Step %d.png' % step)
 	x, y, w, h = changeDetection(previous_step, current_step)
-	if w * h < 2700 or x == 0 or y == 0 or x+w == 480 or y+h == 480:	#棋子没有移动
+	if w * h < 52*52 or w*h > 50*400 or x == 0 or y == 0 or x+w == 480 or y+h == 480:	#棋子没有移动
 		return 0
 	else:
 		beginPoint, endPoint, piece = CalculateTrace(previous_step, current_step)
@@ -232,11 +236,12 @@ def PiecesChangeDetection(current_step):
 				r, frame = cap.read()
 				frame = preprocess(frame)
 				x, y, w, h = changeDetection(previous_step, frame)
-				if x != 0 and y != 0 and x+w != 480 and y+h != 480 and compare(previous_step, frame, x, y, w, h):
-					legal_move = True
-					cv2.imwrite('./Test_Image/Step %d.png' % step, frame)
-					print('Rollback successfully!')
-					break
+				if x != 0 and y != 0 and x+w != 480 and y+h != 480:
+					if compare(previous_step, frame, x, y, w, h):
+						legal_move = True
+						cv2.imwrite('./Test_Image/Step %d.png' % step, frame)
+						print('Rollback successfully!')
+						break
 			return 0
 
 def preprocess(img):
