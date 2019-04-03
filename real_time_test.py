@@ -92,10 +92,10 @@ def savePath(beginPoint, endPoint, piece):
 		if updown != 0 and leftright != 0:
 			legal_move = False
 	elif variety in ['bing']:
-		if begin[1] < end[1] or (begin[1] >= 5.0 and begin[0] != end[0]):
+		if begin[1] < end[1] or (begin[1] >= 5.0 and begin[0] != end[0]) or (begin[1]-end[1] > 1):
 			legal_move = False
 	elif variety in ['zu']:
-		if begin[1] > end[1] or (begin[1] <= 4.0 and begin[0] != end[0]):
+		if begin[1] > end[1] or (begin[1] <= 4.0 and begin[0] != end[0]) or (end[1]-begin[1] > 1):
 			legal_move = False
 
 	if isRed:
@@ -167,13 +167,21 @@ def changeDetection(previous_step, current_step):
 	previous_frame_gray = cv2.cvtColor(previous_step, cv2.COLOR_BGR2GRAY)
 	frame_diff = cv2.absdiff(current_frame_gray, previous_frame_gray)
 	frame_diff = cv2.medianBlur(frame_diff, 5)
-	ret, frame_diff = cv2.threshold(frame_diff, 0, 255, cv2.THRESH_OTSU)
-	frame_diff = cv2.medianBlur(frame_diff, 5)
-	x, y, w, h = cv2.boundingRect(frame_diff)
+	ret, frame_diff_otsu = cv2.threshold(frame_diff, 0, 255, cv2.THRESH_OTSU)
+	frame_diff_otsu = cv2.medianBlur(frame_diff_otsu, 5)
+	x, y, w, h = cv2.boundingRect(frame_diff_otsu)
 	#### For Test ####
-	cv2.rectangle(frame_diff, (x, y), (x + w, y + h), (255,255,255), 2)
-	cv2.imshow('', frame_diff)
-	cv2.waitKey(1)
+	if ret > 20:
+		cv2.rectangle(frame_diff_otsu, (x, y), (x + w, y + h), (255,255,255), 2)
+		cv2.imshow('', frame_diff_otsu)
+		cv2.waitKey(1)
+	else:
+		_, frame_diff = cv2.threshold(frame_diff, 25, 255, cv2.THRESH_BINARY)
+		frame_diff = cv2.medianBlur(frame_diff, 5)
+		x2, y2, w2, h2 = cv2.boundingRect(frame_diff)
+		cv2.rectangle(frame_diff, (x2, y2), (x2 + w2, y2 + h2), (255, 255, 255), 2)
+		cv2.imshow('', frame_diff)
+		cv2.waitKey(1)
 	#### For Test ####
 	return x, y, w, h
 
@@ -237,8 +245,8 @@ def preprocess(img):
 
 if __name__ == '__main__':
 	# Initialize camera
-	# cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
-	cap = cv2.VideoCapture('test.avi')
+	cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
+	# cap = cv2.VideoCapture('test.avi')
 	if cap.isOpened():
 		for j in range(20):
 			cap.read()
