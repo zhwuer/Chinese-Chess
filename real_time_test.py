@@ -22,7 +22,7 @@ def Initialization():
 	legal_move = True	# To decide if the move is legal or illegal
 	isRed = True		# To decide which team moves now
 	target_size = (56, 56)		# CNN input image size
-	model = load_model('./h5_file/new_model.h5')	# Machine Learning Model
+	model = load_model('./h5_file/new_model_v2.h5')	# Machine Learning Model
 	
 	# Initialize mysql
 	db = pymysql.connect("localhost", "root", "zhenmafan", "chess")
@@ -171,21 +171,14 @@ def changeDetection(previous_step, current_step):
 	previous_frame_gray = cv2.cvtColor(previous_step, cv2.COLOR_BGR2GRAY)
 	frame_diff = cv2.absdiff(current_frame_gray, previous_frame_gray)
 	frame_diff = cv2.medianBlur(frame_diff, 5)
-	ret, frame_diff_otsu = cv2.threshold(frame_diff, 0, 255, cv2.THRESH_OTSU)
-	frame_diff_otsu = cv2.medianBlur(frame_diff_otsu, 11)
-	x, y, w, h = cv2.boundingRect(frame_diff_otsu)
+	ret, frame_diff = cv2.threshold(frame_diff, 0, 255, cv2.THRESH_OTSU)
+	frame_diff = cv2.medianBlur(frame_diff, 5)
+	x, y, w, h = cv2.boundingRect(frame_diff)
 	#### For Test ####
-	if ret > 5:
-		cv2.rectangle(frame_diff_otsu, (x, y), (x + w, y + h), (255,255,255), 2)
-		cv2.imshow('', frame_diff_otsu)
-		cv2.waitKey(1)
-	else:
-		_, frame_diff = cv2.threshold(frame_diff, 25, 255, cv2.THRESH_BINARY)
-		frame_diff = cv2.medianBlur(frame_diff, 5)
-		x2, y2, w2, h2 = cv2.boundingRect(frame_diff)
-		cv2.rectangle(frame_diff, (x2, y2), (x2 + w2, y2 + h2), (255, 255, 255), 2)
+	if ret >15:
+		cv2.rectangle(frame_diff, (x, y), (x + w, y + h), (255, 255, 255), 2)
 		cv2.imshow('', frame_diff)
-		cv2.waitKey(1)
+		cv2.waitKey(20)
 	#### For Test ####
 	return x, y, w, h
 
@@ -213,7 +206,7 @@ def PiecesChangeDetection(current_step):
 	global legal_move
 	previous_step = cv2.imread('./Test_Image/Step %d.png' % step)
 	x, y, w, h = changeDetection(previous_step, current_step)
-	if w * h < 52*52 or w*h > 50*400 or x == 0 or y == 0 or x+w == 480 or y+h == 480:	#棋子没有移动
+	if w * h < 52*52 or w*h > 50*400 or (w > 140 and h > 140) or x == 0 or y == 0 or x+w == 480 or y+h == 480:	#棋子没有移动
 		return 0
 	else:
 		beginPoint, endPoint, piece = CalculateTrace(previous_step, current_step)
@@ -234,55 +227,49 @@ def PiecesChangeDetection(current_step):
 			print('Please rollback to step %d' % step)
 			while (True):
 				r, frame = cap.read()
-				frame = preprocess(frame)
+				frame = frame[0:480, 0:480]
 				x, y, w, h = changeDetection(previous_step, frame)
-				if x != 0 and y != 0 and x+w != 480 and y+h != 480:
-					if compare(previous_step, frame, x, y, w, h):
-						legal_move = True
-						cv2.imwrite('./Test_Image/Step %d.png' % step, frame)
-						print('Rollback successfully!')
-						break
+				if x != 0 and y != 0 and x + w != 480 and y + h != 480 and compare(previous_step, frame, x, y, w, h):
+					legal_move = True
+					cv2.imwrite('./Test_Image/Step %d.png' % step, frame)
+					print('Rollback successfully!')
+					break
 			return 0
-
-def preprocess(img):
-	output = img[0:480, 0:480]
-	return output
 
 if __name__ == '__main__':
 	# Initialize camera
-	cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
-	# cap = cv2.VideoCapture('test.avi')
+	# cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
+	cap = cv2.VideoCapture('test.avi')
 	if cap.isOpened():
 		for j in range(20):
 			cap.read()
 		ret, current_frame = cap.read()
-		current_frame = preprocess(current_frame)
+		current_frame = current_frame[0:480, 0:480]
 		cv2.imwrite('./Test_Image/Step 0.png', current_frame)
 	else:
 		exit('Camera is not open.')
 	print('Camera Initialized.')
 	previous_frame = current_frame
 	Initialization()
-	try:
-		while (cap.isOpened()):
-			x, y, w, h = changeDetection(current_frame, previous_frame)
-			if (x == 0 and y == 0 and w == 480 and h == 480):
-				try:
-					num = PiecesChangeDetection(current_frame)
-				except:
-					print('There is a bug when running function PiecesChangeDetection().')
-				if legal_move:
-					if num == 1:
-						step += 1
-						isRed = bool(1 - isRed)
-					elif num == 0:
-						pass
+	while (cap.isOpened()):
+		x, y, w, h = changeDetection(current_frame, previous_frame)
+		if (x == 0 and y == 0 and w == 480 and h == 480):
+			try:
+				num = PiecesChangeDetection(current_frame)
+			except:
+				print('There is a bug when running function PiecesChangeDetection().')
+			if legal_move:
+				if num == 1:
+					step += 1
+					isRed = bool(1 - isRed)
+				elif num == 0:
+					pass
+		previous_frame = current_frame.copy()
+		ret, current_frame = cap.read()
+		if not ret:
+			break
+		current_frame = current_frame[0:480, 0:480]
 
-			previous_frame = current_frame.copy()
-			ret, current_frame = cap.read()
-			current_frame = preprocess(current_frame)
-	except:
-		print('Exit')
-		cap.release()
-		cv2.destroyAllWindows()
-		db.close()
+	cap.release()
+	cv2.destroyAllWindows()
+	db.close()

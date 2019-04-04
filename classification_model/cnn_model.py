@@ -10,12 +10,12 @@ root_path = '/Users/jartus/Chinese-Chess/classification_model'
 os.chdir(root_path)
 
 # The things you need to change is in here
-train_dir = '../Dataset/train'
+train_dir = '../Dataset/finetune'
 valid_dir = '../Dataset/valid'
-loaded_model_path = '../h5_file/model.h5'
+loaded_model_path = '../h5_file/new_model.h5'
 #saved_model_path = '../Temporary_Model/cnn_mini_v{epoch:d}.h5'
 saved_model_path = '../Temporary_Model/cnn_mini.h5'
-epochs = 10
+epochs = 2
 steps_per_epoch = 1400
 validation_steps = 400
 
@@ -60,7 +60,7 @@ def create_cnn_model():
 		return model
 
 model = create_cnn_model()
-#model.load_weights(loaded_model_path, by_name=True)
+model.load_weights(loaded_model_path, by_name=True)
 model.summary()
 #pool = multiprocessing.Pool(processes=8)
 
