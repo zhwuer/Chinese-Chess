@@ -206,7 +206,7 @@ def PiecesChangeDetection(current_step):
 	global legal_move
 	previous_step = cv2.imread('./Test_Image/Step %d.png' % step)
 	x, y, w, h = changeDetection(previous_step, current_step)
-	if w * h < 52*52 or w*h > 50*400 or (w > 140 and h > 140) or x == 0 or y == 0 or x+w == 480 or y+h == 480:	#棋子没有移动
+	if w * h < 50*50 or w*h > 50*400 or (w > 140 and h > 140) or x == 0 or y == 0 or x+w == 480 or y+h == 480:	#棋子没有移动
 		return 0
 	else:
 		beginPoint, endPoint, piece = CalculateTrace(previous_step, current_step)
