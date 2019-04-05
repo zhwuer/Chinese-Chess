@@ -261,7 +261,7 @@ if __name__ == '__main__':
 			if num == 1:
 				step += 1
 				isRed = bool(1 - isRed)
-			elif num == 0:
+			elif num == 0: 
 				pass
 		previous_frame = current_frame.copy()
 		ret, current_frame = cap.read()
