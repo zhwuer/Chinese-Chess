@@ -133,7 +133,7 @@ def CalculateTrace(pre_img, cur_img):
 	pointSet = []
 	beginPoint = []
 	endPoint = []
-	x, y, w, h = changeDetection(cur_img, pre_img)
+	x, y, w, h = changeDetection(cur_img, pre_img, True)
 	pre_img_gray = cv2.cvtColor(pre_img, cv2.COLOR_BGR2GRAY)
 	cur_img_gray = cv2.cvtColor(cur_img, cv2.COLOR_BGR2GRAY)
 	pre_img_circle = cv2.HoughCircles(pre_img_gray,cv2.HOUGH_GRADIENT,1,40,param1=100,param2=20,minRadius=18,maxRadius=18)[0]
@@ -166,7 +166,7 @@ def CalculateTrace(pre_img, cur_img):
 		return [], [], []
 	return beginPoint, endPoint, piece
 
-def changeDetection(previous_step, current_step):
+def changeDetection(previous_step, current_step, visual = False):
 	current_frame_gray = cv2.cvtColor(current_step, cv2.COLOR_BGR2GRAY)
 	previous_frame_gray = cv2.cvtColor(previous_step, cv2.COLOR_BGR2GRAY)
 	frame_diff = cv2.absdiff(current_frame_gray, previous_frame_gray)
@@ -175,7 +175,7 @@ def changeDetection(previous_step, current_step):
 	frame_diff = cv2.medianBlur(frame_diff, 5)
 	x, y, w, h = cv2.boundingRect(frame_diff)
 	#### For Test ####
-	if ret >15:
+	if visual:
 		cv2.rectangle(frame_diff, (x, y), (x + w, y + h), (255, 255, 255), 2)
 		cv2.imshow('', frame_diff)
 		cv2.waitKey(20)
@@ -205,8 +205,8 @@ def compare(img1, img2, x, y, w, h):
 def PiecesChangeDetection(current_step):
 	global legal_move
 	previous_step = cv2.imread('./Test_Image/Step %d.png' % step)
-	x, y, w, h = changeDetection(previous_step, current_step)
-	if w * h < 50*50 or w*h > 50*500 or x == 0 or y == 0 or x+w == 480 or y+h == 480:	#棋子没有移动
+	x, y, w, h = changeDetection(previous_step, current_step, True)
+	if w * h < 50*50 or x == 0 or y == 0 or x+w == 480 or y+h == 480:	#棋子没有移动
 		return 0
 	else:
 		beginPoint, endPoint, piece = CalculateTrace(previous_step, current_step)
@@ -254,10 +254,7 @@ if __name__ == '__main__':
 	while (cap.isOpened()):
 		x, y, w, h = changeDetection(current_frame, previous_frame)
 		if (x == 0 and y == 0 and w == 480 and h == 480):
-			try:
-				num = PiecesChangeDetection(current_frame)
-			except:
-				print('There is a bug when running function PiecesChangeDetection().')
+			num = PiecesChangeDetection(current_frame)
 			if num == 1:
 				step += 1
 				isRed = bool(1 - isRed)
