@@ -172,10 +172,11 @@ def changeDetection(previous_step, current_step):
 	frame_diff = cv2.absdiff(current_frame_gray, previous_frame_gray)
 	frame_diff = cv2.medianBlur(frame_diff, 5)
 	ret, frame_diff = cv2.threshold(frame_diff, 0, 255, cv2.THRESH_OTSU)
-	frame_diff = cv2.medianBlur(frame_diff, 5)
+	for i in range(3):
+		frame_diff = cv2.medianBlur(frame_diff, 5)
 	x, y, w, h = cv2.boundingRect(frame_diff)
 	#### For Test ####
-	if ret >15:
+	if ret > 15:
 		cv2.rectangle(frame_diff, (x, y), (x + w, y + h), (255, 255, 255), 2)
 		cv2.imshow('', frame_diff)
 		cv2.waitKey(20)
@@ -238,8 +239,8 @@ def PiecesChangeDetection(current_step):
 
 if __name__ == '__main__':
 	# Initialize camera
-	# cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
-	cap = cv2.VideoCapture('test.avi')
+	cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
+	#cap = cv2.VideoCapture('test.avi')
 	if cap.isOpened():
 		for j in range(20):
 			cap.read()
