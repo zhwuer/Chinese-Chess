@@ -128,12 +128,11 @@ def findPoint(point, pointset):
 			break
 	return flag, point_finetune
 
-def CalculateTrace(pre_img, cur_img):
+def CalculateTrace(pre_img, cur_img, x, y, w, h):
 	# Input loca = [x, y, w, h], return all circle center inside the rectangular to pointSet
 	pointSet = []
 	beginPoint = []
 	endPoint = []
-	x, y, w, h = changeDetection(cur_img, pre_img, True)
 	pre_img_gray = cv2.cvtColor(pre_img, cv2.COLOR_BGR2GRAY)
 	cur_img_gray = cv2.cvtColor(cur_img, cv2.COLOR_BGR2GRAY)
 	pre_img_circle = cv2.HoughCircles(pre_img_gray,cv2.HOUGH_GRADIENT,1,40,param1=100,param2=20,minRadius=18,maxRadius=18)[0]
@@ -209,7 +208,7 @@ def PiecesChangeDetection(current_step):
 	if w * h < 50*50 or x == 0 or y == 0 or x+w == 480 or y+h == 480:	#棋子没有移动
 		return 0
 	else:
-		beginPoint, endPoint, piece = CalculateTrace(previous_step, current_step)
+		beginPoint, endPoint, piece = CalculateTrace(previous_step, current_step, x, y, w, h)
 		if beginPoint != [] and endPoint != [] and piece != []:
 			text, predict_category = savePath(beginPoint, endPoint, piece)
 			if legal_move:
