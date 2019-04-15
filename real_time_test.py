@@ -25,7 +25,7 @@ def Initialization():
 	model = load_model('./h5_file/new_model_v2.h5')	# Machine Learning Model
 	
 	# Initialize mysql
-	db = pymysql.connect("localhost", "root", "zhenmafan", "chess")
+	db = pymysql.connect("localhost", "root", "root", "chess")
 	cursor = db.cursor()
 	cursor.execute("DROP TABLE IF EXISTS chess")
 	sql1 = """CREATE TABLE chess (
@@ -237,8 +237,8 @@ def PiecesChangeDetection(current_step):
 
 if __name__ == '__main__':
 	# Initialize camera
-	cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
-	# cap = cv2.VideoCapture('test.avi')
+	# cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
+	cap = cv2.VideoCapture('test.avi')
 	if cap.isOpened():
 		for j in range(20):
 			cap.read()
@@ -264,9 +264,9 @@ if __name__ == '__main__':
 		if not ret:
 			break
 		current_frame = current_frame[0:480, 0:480]
-		cv2.rectangle(current_frame, ad.begin, (ad.begin[0] + 400, ad.begin[1] + 400), (255, 255, 255), 2)
-		cv2.imshow('', current_frame)
-		cv2.waitKey(1)
+		#cv2.rectangle(current_frame, ad.begin, (ad.begin[0] + 400, ad.begin[1] + 400), (255, 255, 255), 2)
+		#cv2.imshow('', current_frame)
+		#cv2.waitKey(1)
 
 	cap.release()
 	cv2.destroyAllWindows()
