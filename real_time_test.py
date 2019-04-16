@@ -237,8 +237,8 @@ def PiecesChangeDetection(current_step):
 
 if __name__ == '__main__':
 	# Initialize camera
-	# cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
-	cap = cv2.VideoCapture('test.avi')
+	cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
+	# cap = cv2.VideoCapture('test.avi')
 	if cap.isOpened():
 		for j in range(20):
 			cap.read()
