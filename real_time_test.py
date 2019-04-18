@@ -122,7 +122,7 @@ def findPoint(point, pointset):
 		v1 = np.array([i[1], i[0]])
 		v2 = np.array(point)
 		d = np.linalg.norm(v1 - v2)
-		if d < 30:
+		if d < 25:
 			flag = True
 			point_finetune = i
 			break
@@ -238,7 +238,7 @@ def PiecesChangeDetection(current_step):
 if __name__ == '__main__':
 	# Initialize camera
 	# cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
-	cap = cv2.VideoCapture('test.avi')
+	cap = cv2.VideoCapture('output.avi')
 	if cap.isOpened():
 		for j in range(20):
 			cap.read()
