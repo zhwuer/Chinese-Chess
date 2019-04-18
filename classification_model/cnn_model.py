@@ -10,12 +10,12 @@ root_path = '/Users/jartus/Chinese-Chess/classification_model'
 os.chdir(root_path)
 
 # The things you need to change is in here
-train_dir = '../Dataset/finetune'
+train_dir = '../Dataset/train'
 valid_dir = '../Dataset/valid'
-loaded_model_path = '../h5_file/new_model.h5'
+loaded_model_path = '../h5_file/new_model_v2.h5'
 #saved_model_path = '../Temporary_Model/cnn_mini_v{epoch:d}.h5'
 saved_model_path = '../Temporary_Model/cnn_mini.h5'
-epochs = 2
+epochs = 5
 steps_per_epoch = 1400
 validation_steps = 400
 
@@ -68,11 +68,11 @@ model.summary()
 train_datagen = ImageDataGenerator(
 		rescale=1./255,
 		rotation_range= 360,
-		#channel_shift_range=10,
-		#width_shift_range= 0.1,
-		#height_shift_range= 0.1,
-		#shear_range= 0.2,
-		#zoom_range= (0.8,1.1),
+		channel_shift_range=10,
+		width_shift_range= 0.1,
+		height_shift_range= 0.1,
+		shear_range= 0.2,
+		zoom_range= (0.8,1.1),
 		#fill_mode= 'nearest',
 		#pool=pool
 		)

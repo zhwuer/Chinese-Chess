@@ -9,10 +9,10 @@ pieceTypeList_with_grid = ['b_jiang','b_ju', 'b_ma', 'b_pao', 'b_shi', 'b_xiang'
                 'r_bing', 'r_ju', 'r_ma', 'r_pao', 'r_shi', 'r_shuai', 'r_xiang']
 label_type = pieceTypeList_with_grid
 # The things you need to change is in here
-weights = '/Users/jartus/Chinese-Chess/Temporary_Model/cnn_mini_v49.h5'
-weights = '/Users/jartus/Chinese-Chess/h5_file/cnn_mini2.h5'
+weights = '/Users/jartus/Chinese-Chess/Temporary_Model/cnn_mini.h5'
+#weights = '/Users/jartus/Chinese-Chess/h5_file/new_model_v2.h5'
 file_path = '/Users/jartus/Chinese-Chess/Dataset/finetune/'
-file_path = '/Users/jartus/Chinese-Chess/Dataset/finetune/r_bing/'
+file_path = '/Users/jartus/Chinese-Chess/Dataset/train/b_ju/b_ju_285.png'
 
 def evaluate_one(weights, file_path):
 	model = load_model(weights)
