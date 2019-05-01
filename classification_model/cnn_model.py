@@ -64,6 +64,8 @@ def create_cnn_model():
 
 def create_vgg_model():
 	base_model = VGG19(weights='imagenet', include_top=False, input_shape=(56, 56, 3))
+	for layer in base_model.layers:
+		layer.trainable = False
 	x = base_model.output
 	x = GlobalAveragePooling2D()(x)
 	x = Dense(1024, activation='relu')(x)
@@ -72,10 +74,6 @@ def create_vgg_model():
 	x = Dropout(0.5)(x)
 	x = Dense(NUM_CLASSES, activation='softmax', name='output')(x)
 	model = Model(inputs=base_model.input, outputs=x)
-	for layer in model.layers[:20]:
-		layer.trainable = False
-	for layer in model.layers[20:]:
-		layer.trainable = True
 	model.compile(optimizer='Adam',
 				  loss='categorical_crossentropy',
 				  metrics=['accuracy'])
