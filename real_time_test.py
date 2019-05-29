@@ -205,7 +205,7 @@ def PiecesChangeDetection(current_step):
 	global legal_move
 	previous_step = cv2.imread('./Test_Image/Step %d.png' % step)
 	x, y, w, h = changeDetection(previous_step, current_step, False)
-	if w * h < 50*50 or x == 0 or y == 0 or x+w == 480 or y+h == 480 or compare(previous_step, current_step, x, y, w, h):	#棋子没有移动
+	if w * h < 50*50 or x == 0 or y == 0 or x+w == 480 or y+h == 480:	#棋子没有移动
 		return 0
 	else:
 		beginPoint, endPoint, piece = CalculateTrace(previous_step, current_step, x, y, w, h)
@@ -237,8 +237,8 @@ def PiecesChangeDetection(current_step):
 
 if __name__ == '__main__':
 	# Initialize camera
-	cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
-	#cap = cv2.VideoCapture('output.avi')
+	# cap = cv2.VideoCapture("http://admin:admin@%s:8081/" % ip)
+	cap = cv2.VideoCapture('test.avi')
 	if cap.isOpened():
 		for j in range(20):
 			cap.read()
@@ -264,9 +264,9 @@ if __name__ == '__main__':
 		if not ret:
 			break
 		current_frame = current_frame[0:480, 0:480]
-		# cv2.rectangle(current_frame, ad.begin, (ad.begin[0] + 400, ad.begin[1] + 400), (255, 255, 255), 2)
-		# cv2.imshow('', current_frame)
-		# cv2.waitKey(1)
+		cv2.rectangle(current_frame, ad.begin, (ad.begin[0] + 400, ad.begin[1] + 400), (255, 255, 255), 2)
+		cv2.imshow('', current_frame)
+		cv2.waitKey(1)
 
 	cap.release()
 	cv2.destroyAllWindows()

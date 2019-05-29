@@ -17,9 +17,9 @@ valid_dir = '../Dataset/valid'
 loaded_model_path = '../h5_file/new_model_v2.h5'
 #saved_model_path = '../Temporary_Model/cnn_mini_v{epoch:d}.h5'
 saved_model_path = '../Temporary_Model/cnn_mini.h5'
-epochs = 5
-steps_per_epoch = 1400
-validation_steps = 400
+epochs = 50
+steps_per_epoch = 700
+validation_steps = 200
 
 
 def create_cnn_model():
