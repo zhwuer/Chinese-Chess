@@ -5,4 +5,4 @@
 ![IMG2](https://github.com/zhwuer/Chinese-Chess/blob/master/Test_IMG2.png)
 
 # Test Video
-![Watch the video](https://github.com/zhwuer/Chinese-Chess/blob/master/Test.gif)
+https://github.com/zhwuer/Chinese-Chess/blob/master/Test.gif
