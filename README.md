@@ -16,16 +16,13 @@ In our problem, the first step is to identify the beginning point and the end po
 - The training data in Dataset/train lost some images because of some unknown reasons, if you need to re-train you model, you can generate more data by yourself or just move some data from valid to train :).
 - The location of the phone need to be right over the chess board, it is very hard to fix it(I used the mobile phone holder like [Tools](./Sources/Tools.png)). So I provide a video named [test.avi](./Sources/test.avi) in the Sources directory. If you want to do the real time test, you need to change the code in line 240, [real_time_test.py](./real_time_test.py).
 
-# Test
-## Test on iPad:
-Test_IMG1
+# Test on iPad
 ![IMG1](https://github.com/zhwuer/Chinese-Chess/blob/master/Sources/Test_IMG1.png)
-Test_IMG2
 ![IMG2](https://github.com/zhwuer/Chinese-Chess/blob/master/Sources/Test_IMG2.png)
 
 # Test Video
 [Full Video tested in the iPad](https://youtu.be/6aI8yIMQmbc)
 
 ## Reference
-[1] [https://github.com/itlwei/Chess](https://github.com/itlwei/Chess)
+[1] [https://github.com/itlwei/Chess](https://github.com/itlwei/Chess)<br>
 [2] [https://github.com/evanchien/chinese_chess_recognition](https://github.com/evanchien/chinese_chess_recognition)
