@@ -5,8 +5,8 @@ To solve this problem, the first step is to identify the beginning point and the
 ![Test](https://github.com/zhwuer/Chinese-Chess/blob/master/Sources/Test.gif)
 
 # Test Video
-[(Youtube)Full Video tested in the iPad](https://youtu.be/6aI8yIMQmbc)
-[(西瓜视频)在iPad上测试]()
+- [(Youtube)Full Video tested in the iPad](https://youtu.be/6aI8yIMQmbc)
+- [(西瓜视频)在iPad上测试]()
 
 ---
 ## <span style="color:blue">Usage</span>
