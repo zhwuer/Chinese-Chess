@@ -3,6 +3,11 @@ To solve this problem, the first step is to identify the beginning point and the
 ![Flow Chart](./Sources/Flow%20chart.png)
 
 ![Test](https://github.com/zhwuer/Chinese-Chess/blob/master/Sources/Test.gif)
+
+# Test Video
+[(Youtube)Full Video tested in the iPad](https://youtu.be/6aI8yIMQmbc)
+[(西瓜视频)在iPad上测试]()
+
 ---
 ## <span style="color:blue">Usage</span>
 - [CNN_Classification_Model](./CNN_Classification_Model) contains the codes I used to train the classification model, it is ok to use the .h5 model named [new_model_v2.h5](./h5_file/new_model_v2.h5) in the h5_file.
@@ -19,9 +24,6 @@ To solve this problem, the first step is to identify the beginning point and the
 # Test on iPad
 ![IMG1](https://github.com/zhwuer/Chinese-Chess/blob/master/Sources/Test_IMG1.png)
 ![IMG2](https://github.com/zhwuer/Chinese-Chess/blob/master/Sources/Test_IMG2.png)
-
-# Test Video
-[Full Video tested in the iPad](https://youtu.be/6aI8yIMQmbc)
 
 ## Reference
 [1] [https://github.com/itlwei/Chess](https://github.com/itlwei/Chess)<br>
