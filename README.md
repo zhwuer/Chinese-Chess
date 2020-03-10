@@ -6,9 +6,8 @@ To solve this problem, the first step is to identify the beginning point and the
 
 # Test Video
 - [(Youtube)Full Video tested in the iPad](https://youtu.be/6aI8yIMQmbc)
-- [(西瓜视频)在iPad上测试]()
+- [(优酷视频)在iPad上测试](https://v.youku.com/v_show/id_XNDU4MTU2MTAyMA==.html)
 
----
 ## <span style="color:blue">Usage</span>
 - [CNN_Classification_Model](./CNN_Classification_Model) contains the codes I used to train the classification model, it is ok to use the .h5 model named [new_model_v2.h5](./h5_file/new_model_v2.h5) in the h5_file.
 - [Dataset](./Dataset) contains the dataset I made by taking pictures by Phone and using HoughCircle to roughly extract some chess pieces from the picture.
