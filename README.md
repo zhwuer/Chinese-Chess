@@ -19,8 +19,8 @@ To solve this problem, the first step is to identify the beginning point and the
 - The location of the phone need to be right over the chess board, it is very hard to fix it (I used the mobile phone holder like [this](./Sources/Tools.png)). So I provide a video named [test.avi](./Sources/test.avi) in the Sources directory. If you want to do the real time test, you need to change the code in line 240, [real_time_test.py](./real_time_test.py).
 
 # Test on iPad
-![IMG1](./Sources/Test_IMG1_processed.png)
-![IMG2](./Sources/Test_IMG2_processed.png)
+![IMG1](./Sources/Test_IMG1_processed.jpg)
+![IMG2](./Sources/Test_IMG2_processed.jpg)
 
 ## Reference
 [1] [https://github.com/itlwei/Chess](https://github.com/itlwei/Chess)<br>
