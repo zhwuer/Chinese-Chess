@@ -2,8 +2,6 @@
 To solve this problem, the first step is to identify the beginning point and the end point of the pieces movement. The second step is to crop a square image on the begin/end point and pass it to convolutional neural network (CNN) to do the chess pieces classification.
 ![Flow Chart](./Sources/Flow%20chart.png)
 
-![Test](https://github.com/zhwuer/Chinese-Chess/blob/master/Sources/Test.gif)
-
 # Test Video
 - [(Youtube)Full Video tested in the iPad](https://youtu.be/6aI8yIMQmbc)
 - [(优酷视频)在iPad上测试](https://v.youku.com/v_show/id_XNDU4MTU2MTAyMA==.html)
@@ -21,8 +19,8 @@ To solve this problem, the first step is to identify the beginning point and the
 - The location of the phone need to be right over the chess board, it is very hard to fix it (I used the mobile phone holder like [this](./Sources/Tools.png)). So I provide a video named [test.avi](./Sources/test.avi) in the Sources directory. If you want to do the real time test, you need to change the code in line 240, [real_time_test.py](./real_time_test.py).
 
 # Test on iPad
-![IMG1](https://github.com/zhwuer/Chinese-Chess/blob/master/Sources/Test_IMG1.png)
-![IMG2](https://github.com/zhwuer/Chinese-Chess/blob/master/Sources/Test_IMG2.png)
+![IMG1](https://github.com/zhwuer/Chinese-Chess/blob/master/Sources/Test_IMG1_processed.png)
+![IMG2](https://github.com/zhwuer/Chinese-Chess/blob/master/Sources/Test_IMG2_processed.png)
 
 ## Reference
 [1] [https://github.com/itlwei/Chess](https://github.com/itlwei/Chess)<br>
